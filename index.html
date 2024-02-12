@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analog Joystick</title>
+<style>
+  .joystick-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+  }
+
+  .joystick {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background-color: blue;
+    border-radius: 50%;
+  }
+</style>
+</head>
+<body>
+<div class="joystick-container">
+  <div class="joystick"></div>
+</div>
+<script>
+    const joystick = document.querySelector('.joystick');
+    const container = document.querySelector('.joystick-container');
+    
+    let isJoystickClicked = false;
+    
+    // Les coordonnées du centre (position par défaut) du joystick
+    const centerPosX = container.offsetWidth / 2 - joystick.offsetWidth / 2;
+    const centerPosY = container.offsetHeight / 2 - joystick.offsetHeight / 2;
+    
+    // Définir la position par défaut du joystick
+    joystick.style.left = centerPosX + 'px';
+    joystick.style.top = centerPosY + 'px';
+    
+    // Diviser le joystick en quatre zones
+    const zoneWidth = container.offsetWidth / 2;
+    const zoneHeight = container.offsetHeight / 2;
+    
+    // Variables pour les directions
+    let up = false;
+    let down = false;
+    let left = false;
+    let right = false;
+    
+    joystick.addEventListener('mousedown', startDrag);
+    joystick.addEventListener('touchstart', startDrag);
+    
+    function startDrag(e) {
+      isJoystickClicked = true;
+      moveJoystick(e);
+      document.addEventListener('mousemove', moveJoystick);
+      document.addEventListener('touchmove', moveJoystick);
+      document.addEventListener('mouseup', stopDrag);
+      document.addEventListener('touchend', stopDrag);
+    }
+    
+    function moveJoystick(e) {
+      if (isJoystickClicked) {
+        e.preventDefault();
+        const boundingBox = container.getBoundingClientRect();
+        let posX, posY;
+    
+        if (e.type === 'touchmove') {
+          posX = e.touches[0].clientX - boundingBox.left;
+          posY = e.touches[0].clientY - boundingBox.top;
+        } else {
+          posX = e.clientX - boundingBox.left;
+          posY = e.clientY - boundingBox.top;
+        }
+    
+        const centerX = boundingBox.width / 2;
+        const centerY = boundingBox.height / 2;
+    
+        let distance = Math.sqrt((posX - centerX) ** 2 + (posY - centerY) ** 2);
+        let angle = Math.atan2(posY - centerY, posX - centerX);
+        let maxDistance = boundingBox.width / 2 - joystick.offsetWidth / 2;
+    
+        if (distance > maxDistance) {
+          distance = maxDistance;
+          posX = centerX + distance * Math.cos(angle);
+          posY = centerY + distance * Math.sin(angle);
+        }
+    
+        joystick.style.left = posX - joystick.offsetWidth / 2 + 'px';
+        joystick.style.top = posY - joystick.offsetHeight / 2 + 'px';
+    
+        // Calculer les distances horizontale et verticale par rapport au centre
+        const deltaX = posX - centerX;
+        const deltaY = posY - centerY;
+    
+        // Mettre à jour les variables de direction
+        up = (deltaY < -zoneHeight / 2);
+        down = (deltaY > zoneHeight / 2);
+        left = (deltaX < -zoneWidth / 2);
+        right = (deltaX > zoneWidth / 2);
+    
+        // Tester les directions
+        if (up) {
+          console.log("Up");
+        }
+        if (down) {
+          console.log("Down");
+        }
+        if (left) {
+          console.log("Left");
+        }
+        if (right) {
+          console.log("Right");
+        }
+      }
+    }
+    
+    function stopDrag() {
+      isJoystickClicked = false;
+      // Ramener le joystick à sa position par défaut
+      joystick.style.left = centerPosX + 'px';
+      joystick.style.top = centerPosY + 'px';
+      // Réinitialiser les variables de direction
+      up = false;
+      down = false;
+      left = false;
+      right = false;
+      document.removeEventListener('mousemove', moveJoystick);
+      document.removeEventListener('touchmove', moveJoystick);
+      document.removeEventListener('mouseup', stopDrag);
+      document.removeEventListener('touchend', stopDrag);
+    }
+    
+</script>
+</body>
+</html>
